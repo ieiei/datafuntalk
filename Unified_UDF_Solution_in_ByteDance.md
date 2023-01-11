@@ -1,6 +1,6 @@
 
 
-![page21_1](./images/Dynamic/page21_1.png)
+![page21_1](./images/unified-udf/page21_1.png)
 
 ## 字节的统一UDF方案
 
@@ -10,7 +10,7 @@
 2. 在云产品上如何做的UDF统一支持
 3. 贡献到prestodb开源社区的相关内容
 
-![page22_1](./images/Dynamic/page22_1.png)
+![page22_1](./images/unified-udf/page22_1.png)
 
 ### 第一部分：云产品上统一UDF的实现（Lakehouse Analytics Service火山引擎上支持多引擎多租户的湖仓一体服务）
 
@@ -24,7 +24,7 @@
 
 
 
-![page23_1](./images/Dynamic/page23_1.png)
+![page23_1](./images/unified-udf/page23_1.png)
 
 
 
@@ -36,15 +36,15 @@
 
 
 
-![page24_1](./images/Dynamic/page24_1.png)
+![page24_1](./images/unified-udf/page24_1.png)
 
-![page25_1](./images/Dynamic/page25_1.png)
+![page25_1](./images/unified-udf/page25_1.png)
 
-![page26_1](./images/Dynamic/page26_1.png)
+![page26_1](./images/unified-udf/page26_1.png)
 
 
 
-![page27_1](./images/Dynamic/page27_1.png)
+![page27_1](./images/unified-udf/page27_1.png)
 
 Remote UDF基于这种架构的特点和优势：
 
@@ -60,7 +60,7 @@ Remote UDF基于这种架构的特点和优势：
 
 
 
-![page28_1](./images/Dynamic/page28_1.png)
+![page28_1](./images/unified-udf/page28_1.png)
 
 Remote UDF算是比较新的概念，跟大家平时用的local在实现上差距比较大，大家可能比较关心实际使用remote的性能如何，以及还有哪些优点和缺点：
 
@@ -84,7 +84,7 @@ Remote UDF算是比较新的概念，跟大家平时用的local在实现上差�
 
 
 
-![page02_1](./images/Dynamic/page29_1.png)
+![page02_1](./images/unified-udf/page29_1.png)
 
 ### 第二部分：字节内部平台的实现
 
@@ -96,14 +96,14 @@ Remote UDF算是比较新的概念，跟大家平时用的local在实现上差�
 
 
 
-![page30_1](./images/Dynamic/page30_1.png)
+![page30_1](./images/unified-udf/page30_1.png)
 
 对于很多公司，最初引进presto的时候可能主要考虑presto作为比较优秀的交互式查询引擎，在ad-hoc场景会有比较大的优势。 如果能够对外提供完整的sql语义，后端可以自己选择在etl场景跑spark， 在ad-hoc场景跑presto。但是实际在推广过程中会遇到下面两个比较明显的问题：
 
 1. 如何保证语义一致；
 2. 如何保证UDF的一致；
 
-![page31_1](./images/Dynamic/page31_1.png)
+![page31_1](./images/unified-udf/page31_1.png)
 
 首先对于第一个问题，如何保证语义一致，有很多SQL改写平台，能够逐步保证语法层面的一致。  但是UDF的一致层面改动影响比较大，不太可能让用户重新写一套。 我们推广SQL的自动路由的初衷是想让用户无感知，并且推动用户一套SQL可以在多个引擎运行。 如果不能做到一致性兼容的话，即使推广了remote UDF功能， 用户还是需要直连presto或者spark。基于这些初衷，我们在presto上支持了在local模式下执行hive的UDF/UDAF。
 
@@ -111,7 +111,7 @@ Remote UDF算是比较新的概念，跟大家平时用的local在实现上差�
 
 
 
-![page32_1](./images/Dynamic/page32_1.png)
+![page32_1](./images/unified-udf/page32_1.png)
 
 ###  第三部分：向社区做的贡献
 
@@ -122,7 +122,7 @@ Remote UDF算是比较新的概念，跟大家平时用的local在实现上差�
 
 
 
-![page33_1](./images/Dynamic/page33_1.png)
+![page33_1](./images/unified-udf/page33_1.png)
 
 再介绍下接口层面的东西：
 
@@ -130,7 +130,7 @@ Remote UDF算是比较新的概念，跟大家平时用的local在实现上差�
 
 
 
-![page34_1](./images/Dynamic/page34_1.png)
+![page34_1](./images/unified-udf/page34_1.png)
 
 从实现架构来看， 整体如上图所示，构建了一套基于hive的FunctionNamespaceManager， 会在Resolve Function阶段加载相应的hive UDF类，并且把hive UDF的数据类型跟presto的数据类型进行映射和wrap， 最后执行。
 
@@ -138,7 +138,7 @@ Remote UDF算是比较新的概念，跟大家平时用的local在实现上差�
 
 
 
-![page35_1](./images/Dynamic/page35_1.png)
+![page35_1](./images/unified-udf/page35_1.png)
 
 当前已经提交到prestodb开源社区的部分：
 
@@ -148,7 +148,7 @@ Remote UDF算是比较新的概念，跟大家平时用的local在实现上差�
 
 
 
-![page36_1](./images/Dynamic/page36_1.png)
+![page36_1](./images/unified-udf/page36_1.png)
 
 这里简单介绍一下，在prestodb里如何使用hive的UDF和UDAF。 
 
@@ -157,15 +157,15 @@ Remote UDF算是比较新的概念，跟大家平时用的local在实现上差�
 
 
 
-![page37_1](./images/Dynamic/page37_1.png)
+![page37_1](./images/unified-udf/page37_1.png)
 
-![page38_1](./images/Dynamic/page38_1.png)
+![page38_1](./images/unified-udf/page38_1.png)
 
-![page39_1](./images/Dynamic/page39_1.png)
+![page39_1](./images/unified-udf/page39_1.png)
 
 
 
-![page41_1](./images/Dynamic/page41_1.png)
+![page41_1](./images/unified-udf/page41_1.png)
 
 ### 未来工作：
 
