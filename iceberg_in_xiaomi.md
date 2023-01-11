@@ -2,7 +2,7 @@
 
 导读：随着流批一体技术的发展，和对实时查询的需求以及出于成本的优化考虑，小米对数据湖iceberg技术下做了一些实践和场景落地。
 
-![3-2 iceberg-in-xiaomi-01](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-01.png)
+![iceberg-in-xiaomi-01](./images/xiaomi-iceberg/iceberg-in-xiaomi-01.png)
 
 我今天介绍的内容主要有以下4个方面：
 
@@ -16,19 +16,19 @@
 
 
 
-![3-2 iceberg-in-xiaomi-02](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-02.png)
+![iceberg-in-xiaomi-02](./images/xiaomi-iceberg/iceberg-in-xiaomi-02.png)
 
 ### 第一章： Iceberg技术简介
 
 首先介绍一下Iceberg这个技术。这个大家应该都知道，因此在这一块上我们简短一点
 
-![3-2 iceberg-in-xiaomi-03](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-03.png)
+![iceberg-in-xiaomi-03](./images/xiaomi-iceberg/iceberg-in-xiaomi-03.png)
 
 Iceberg是一个基于大型分析型数据上的一个表格式，它允许将一些文件、数据集以表的形式提供给spark、trino、prestodb、flink、hive这些计算引擎
 
 
 
-![3-2 iceberg-in-xiaomi-04](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-04.png)
+![iceberg-in-xiaomi-04](./images/xiaomi-iceberg/iceberg-in-xiaomi-04.png)
 
 通过如下右边可以看到iceberg所处的位置，当然hudi，delta lake也是同样。
 
@@ -36,7 +36,7 @@ Iceberg是一个基于大型分析型数据上的一个表格式，它允许将�
 
 下层有parquet、orc、avro可以选择，以及最底层的实际物理存储上可以选择s3, aliyun oss以及HDFS。通过iceberg这个抽象，它一个最好的优势就是你可以将底层文件的细节对用户屏蔽，用户可以通过表的方式去访问，而不需要关心底层你到底是存了什么样的文件，底层你到底是存在哪里。
 
-![3-2 iceberg-in-xiaomi-05](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-05.png)
+![iceberg-in-xiaomi-05](./images/xiaomi-iceberg/iceberg-in-xiaomi-05.png)
 
 
 
@@ -44,7 +44,7 @@ iceberg它的实现的本质原理其实就是一种树的组织方式，大概�
 
 我们从下往上看，最底层其实就是一些我们写入的数据文件，即是一些data file。当我们写完这些data file之后，它的元数据文件（就是上面这些所有的），会有一些清单文件，即这些manifest文件，来记录文件和分区的关系。在iceberg也有分区的概念，而且它分区和文件对应关系都记录在清单文件里面。当这个清单文件写完之后都会形成一个快照，就我们每次commit都会形成一个快照。然后多个快照就会通过metadata文件来进行记录。这样如果我们使用一些历史回溯，就可以通过这个文件索引去确定使用哪些快照。
 
-![3-2 iceberg-in-xiaomi-06](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-06.png)
+![iceberg-in-xiaomi-06](./images/xiaomi-iceberg/iceberg-in-xiaomi-06.png)
 
 Iceberg向用户宣称的第一个优势就是它支持事务性。
 
@@ -52,13 +52,13 @@ Iceberg向用户宣称的第一个优势就是它支持事务性。
 
 第二个优势是我们可以用刚才所说的快照的方式来实现读写分离。以hive为例的话，比如这个hive读的程序已经启动了，结果这些文件刚好被overwrite了，然后就可能会导致我们写（读）失败。而iceberg这种使用快照方式通过读到不同的快照来进行一个分离，做到读写的隔离。
 
-![3-2 iceberg-in-xiaomi-07](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-07.png)
+![iceberg-in-xiaomi-07](./images/xiaomi-iceberg/iceberg-in-xiaomi-07.png)
 
 它第二个优势是它提供了一个隐式分区。
 
 我们可以在建表的时候对一个列做一个转换，用一个如transform的函数来做一个隐式分区。这样的话，当我们写入数据的时候，不需要额外指定一个分区来写入，直接写就可以了，它会根据数据去判定到底落在哪个分区，而且它的分区也不跟目录强绑定。另外它提供了partition evolution机制，提供灵活的分区变更，如果当我们在把月替换成天，分别读取的时候就会进行两个查询。
 
-![3-2 iceberg-in-xiaomi-08](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-08.png)
+![iceberg-in-xiaomi-08](./images/xiaomi-iceberg/iceberg-in-xiaomi-08.png)
 
 它的第三个优势是一个行级更新的能力。
 
@@ -66,21 +66,21 @@ Iceberg向用户宣称的第一个优势就是它支持事务性。
 
 以下图为例就是做一个Merge On Read的简单介绍，它通过记录另外两个文件，即position delete和equality delete文件来对已有的文件进行一个删除，当我们读的时候需要将对应的文件进行一个合并，其实并没有执行真正的合并，而是在读的时候对记录进行一个join，过滤出来之后再对数据进行merge得到一个最终结果。
 
-![3-2 iceberg-in-xiaomi-09](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-09.png)
+![iceberg-in-xiaomi-09](./images/xiaomi-iceberg/iceberg-in-xiaomi-09.png)
 
 ### 第二章： Iceberg在小米的一些应用场景
 
 介绍完iceberg一些背景知识，在第二章我们介绍一下iceberg在小米的一些实践以及一些场景。
 
-![3-2 iceberg-in-xiaomi-10](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-10.png)
+![iceberg-in-xiaomi-10](./images/xiaomi-iceberg/iceberg-in-xiaomi-10.png)
 
 现在iceberg表在我们小米大概有4000多张表，数据大概是8PB，其中v1表大概是1000多张，v2表大概是3000多张。像v1表主要是一些日志场景，v2表是可以配一些需要通过主键进行更新的场景。
 
-![3-2 iceberg-in-xiaomi-11](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-11.png)
+![iceberg-in-xiaomi-11](./images/xiaomi-iceberg/iceberg-in-xiaomi-11.png)
 
 我们第一个也是最多的v2表有3000多张，最多的场景就是一些cdc数据，也就是ChangeLog的数据入湖。链路大概如下，就是我们通过flink cdc采集mysql，oracle，tidb的一些数据，然后打到我们中间的mq，然后通过flink写到我们这个iceberg的v2表里面。
 
-![3-2 iceberg-in-xiaomi-12](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-12.png)
+![iceberg-in-xiaomi-12](./images/xiaomi-iceberg/iceberg-in-xiaomi-12.png)
 
 这个能带来什么优势呢？
 
@@ -89,7 +89,7 @@ Iceberg向用户宣称的第一个优势就是它支持事务性。
 3. 第三个就是可以同步变更schema，比如上游的mysql schema变更了，我们可以在这个链路中将schema变更同步到iceberg。这样的话，用户不需要去关心整个链路的变动，直接去取下游的iceberg表就可以了；
 4. 第四个就是使用iceberg来替换一些专有型的数据库，它的成本就是价格更便宜。比如我们之前有些链路使用的是kudu，我们就可以在某些适应场景用iceberg来替换它，成本更便宜。
 
-![3-2 iceberg-in-xiaomi-13](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-13.png)
+![iceberg-in-xiaomi-13](./images/xiaomi-iceberg/iceberg-in-xiaomi-13.png)
 
 我们在数据入湖之中也遇到了一些问题，主要是像mysql这类以自增id为主键的数据入湖。我们给用户提供两种数据分区的方式，第一种是Bucket分区，第二种是Truncate分区。在以自增id为主键的场景我们更推荐用户使用Truncate分区而不是Bucket分区。
 
@@ -97,11 +97,11 @@ Bucket分区示例如下，即分桶的形式，比如有4个桶，当我们自�
 
 而在truncate分区下，我们可以看到，它的分区是可以扩展的，而且由于基于自增id的话，我们的数据写入和compaction只会集中在某几个分区。所以在这种场景下我们更建议用户使用truncation分区。
 
-![3-2 iceberg-in-xiaomi-14](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-14.png)
+![iceberg-in-xiaomi-14](./images/xiaomi-iceberg/iceberg-in-xiaomi-14.png)
 
 以下是我们数据入湖的一个简单产品化的页面，有一个schema的对应关系，左边是mysql，右边是我们的iceberg表。在这个示例中，用户是没有选择使用自增主键，而是选择了一个自己的业务id（order_id)来做key。
 
-![3-2 iceberg-in-xiaomi-15](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-15.png)
+![iceberg-in-xiaomi-15](./images/xiaomi-iceberg/iceberg-in-xiaomi-15.png)
 
 然后第二个iceberg常用的场景就是日志入湖。我们为什么说选用iceberg要比之前的hive要好呢？
 
@@ -110,11 +110,11 @@ Bucket分区示例如下，即分桶的形式，比如有4个桶，当我们自�
 3. 第三点是flink的exactly once以及iceberg事务性能够保证数据的不丢不重，这个也相比我们之前的老链路，可以保证即使链路失败了，我们的数据还是准的；
 4. 第四点是在我们的日志场景下也可以支持schema同步变更。
 
-![3-2 iceberg-in-xiaomi-16](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-16.png)
+![iceberg-in-xiaomi-16](./images/xiaomi-iceberg/iceberg-in-xiaomi-16.png)
 
 这是我们内部的一个日志入湖场景下的产品化。我们在最后一行加了个时间分区的映射，用户可以选择Talos（Kafka）的一个记录时间，也可以选择以一个实际的业务时间来做时间分区。这样用户在数据入湖的选择上就会更多。
 
-![3-2 iceberg-in-xiaomi-17](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-17.png)
+![iceberg-in-xiaomi-17](./images/xiaomi-iceberg/iceberg-in-xiaomi-17.png)
 
 刚才我们提到了compaction，为了维护上层的作业正常，我们在后台有这样三个服务，这三个服务都是以spark的作业形式来运行。
 
@@ -122,13 +122,13 @@ Bucket分区示例如下，即分桶的形式，比如有4个桶，当我们自�
 - 第二个是Expire snapshots服务，用于处理过期的snapshots。如果说snapshots一直不清理的话，那么元数据的文件就会越来越多，这会导致一个膨胀问题。服务会定期的做一些清理；
 - 第三个的话是Orphan Files clean服务，由于一些事务的失败，或者一些快照的过期，导致文件已经在元数据文件中不再引用了，我们就需要把它定期清理掉。
 
-![3-2 iceberg-in-xiaomi-18](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-18.png)
+![iceberg-in-xiaomi-18](./images/xiaomi-iceberg/iceberg-in-xiaomi-18.png)
 
 基于上面的两个产品，我们基本上可以把数据集成的场景都覆盖到了，不管是cdc数据还是日志数据都可以灌到iceberg上。下一步就是想让用户去做一下技术架构的迭代，推动从Hive升级到Iceberg。在这一块其实也遇到了很多问题，主要问题是用户对这个新技术的接纳性并不是很高。
 
 后来我们调研了Parquet+ZSTD的技术方式。除了iceberg本身还是有我们之前提到的那些优点，Parquet+ZSTD的方式还可以做成本节约，这个是用户比较关心的优点。如下可以看到当我们切换到ZSTD之后，TEXT数据我们可以压缩节约80%，因为TEXT数据本身是没有压缩的，因此这个效果比较好。像一些通用的SNAPPY+Parquet，我们也可以节约30%的存储。这是用户和一些部门比较关心的，可以降低30%的成本。当然我们现在选择的ZSTD级别是国内比较流行的level3级别，这个是在压缩效率和压缩时间上都比较合适的一个level。如果我们选择更高的压缩率，可能会导致压缩时间更长，这可能在用户作业中是不可接受的。所以我们也提供可以在后台配置更高的压缩级别的选项，供有需要获得更高的压缩率的用户进行自行选择。
 
-![3-2 iceberg-in-xiaomi-19](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-19.png)
+![iceberg-in-xiaomi-19](./images/xiaomi-iceberg/iceberg-in-xiaomi-19.png)
 
 为了方便用户从Hive升级到Iceberg，我们也做了一个产品化。
 
@@ -136,23 +136,23 @@ Bucket分区示例如下，即分桶的形式，比如有4个桶，当我们自�
 - 第二类我们可能也需要对上游的写入作业做一个升级；
 - 第三类也是迁移到iceberg最复杂的步骤（这里没有列出），就是迁移到iceberg可能导致它的下游作业也要跟着改。
 
-![3-2 iceberg-in-xiaomi-20](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-20.png)
+![iceberg-in-xiaomi-20](./images/xiaomi-iceberg/iceberg-in-xiaomi-20.png)
 
 ### 第三章：基于Iceberg的流批一体的探索
 
 介绍完我们的当前场景后，我们更进一步基于iceberg，做了一些流批一体上的探索。
 
-![3-2 iceberg-in-xiaomi-21](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-21.png)
+![iceberg-in-xiaomi-21](./images/xiaomi-iceberg/iceberg-in-xiaomi-21.png)
 
 我们现在的架构是基于常规的Lambda架构，如下的这条T+1链路，在ODS层算完之后，每隔一天使用Spark或者MR这样的方式去计算。如果为了实时性，比如一些实时大屏的需求，他们就需要用Flink+Talos（Kafka）来搭建一条实时链路，这样的话用户就需要维护两条链路。
 
 这两条链路其实也没有什么问题，我们在实时链路上提供一个时效性，在离线链路上提供一个准确性。而且在hive离线链路上，如果数据错误我们可以做一个回溯，离线入湖上也可以支持查。但是它也有它的一些缺点，比如在实时链路上，我们这个Talos/Kafka目前是没有办法做一些OLAP查询，由于它不能存储全量的数据，它的回溯处理能力也有限，这样我们就需要维护两套代码，两套存储。也很有可能面临到实时离线数据不一致的情况。
 
-![3-2 iceberg-in-xiaomi-21](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-22.png)
+![iceberg-in-xiaomi-21](./images/xiaomi-iceberg/iceberg-in-xiaomi-22.png)
 
 接下来就是我们对iceberg批流一体的设想，我们会将存储层，也就是ODS，DWD，DWS层全部换成iceberg。这样的好处就是我们可以在存储上实现一个统一，就不需要Kafka和Hive两套存储。如果我们将中间的链路切换成Flink的话，这样我们也可以在Flink上实现计算引擎的统一。另外我们也可以做一些回溯，也可以在一些开放的链路中提供一些实时查询。基于iceberg的v2表我们还可以去构建一个变更流。这从业务角度来看，也是一个不错的实现方式。
 
-![3-2 iceberg-in-xiaomi-22](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-23.png)
+![iceberg-in-xiaomi-22](./images/xiaomi-iceberg/iceberg-in-xiaomi-23.png)
 
 
 
@@ -162,13 +162,13 @@ Bucket分区示例如下，即分桶的形式，比如有4个桶，当我们自�
 - 第二个是因为一些窗口的设置或者watermark的设置导致数据延迟数据丢失；
 - 第三个的话就是Lookup join维表的时候完成之后，维表又发生了一些变更。
 
-![3-2 iceberg-in-xiaomi-23](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-24.png)
+![iceberg-in-xiaomi-23](./images/xiaomi-iceberg/iceberg-in-xiaomi-24.png)
 
 
 
 一般对于我们离线的修正，目前一般用overwrite语句覆盖分区的方式，overwrite语句将原来的分区删除掉，然后追加进去新的数据，在spark，flink和iceberg的结合中，有一个Merge Into的语法。它的语法简单如下，MERGE INTO到一个目标表，我们选择一个数据源，然后将数据源的数据merge到目标中，需要一个ON关键字（和join一样）用关键字来连接，在这里也可以指定一个目标表的分区来只对那个分区进行更新。当完成join之后，可以进行下面三个操作：如果我们join上（MATCHED）我们可以对目标表数据进行一个删除，或者是一个更新。如果没有MATCH上，可以把这条数据插入进去。
 
-![3-2 iceberg-in-xiaomi-24](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-25.png)
+![iceberg-in-xiaomi-24](./images/xiaomi-iceberg/iceberg-in-xiaomi-25.png)
 
 
 
@@ -178,17 +178,17 @@ Overwrite的话它是分区覆盖的这种方式，相对Merge Into的话它自�
 
 当我们使用Merge Into的模式写入的话，它可以实现一个增量的更新，只写一些partition，或者用equality、where来标记某些数据被删除了。但有些用户无法接受它的写法复杂。因为要做一些join，它的性也能比overwrite要差一些，但它的优点就是下游只会消费到一些变更的数据，对下游的影响比较小。
 
-![3-2 iceberg-in-xiaomi-25](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-26.png)
+![iceberg-in-xiaomi-25](./images/xiaomi-iceberg/iceberg-in-xiaomi-26.png)
 
 这个图可以看到，用Merge Into去做修正大概的一个链路。就是我们上层的hive表或者iceberg表去通过merge into的语法去增量的更新，然后这些增量更新的数据我们会通过Flink-Sql对它做一些变更更新到下一层（Mysql层）。这条链路还被用来去做一个增量同步。比如说用户有个需求是将Hive的一些数据变更增量同步到Mysql。如果我们全量同步写入mysql的话会造成mysql的一些波动，mysql性能可能会扛不住。就可以选用我们的merge into写到iceberg里面，然后对iceberg的变更增量同步到mysql。这也解决了他们一个独特的业务场景和问题。
 
-![3-2 iceberg-in-xiaomi-27](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-27.png)
+![iceberg-in-xiaomi-27](./images/xiaomi-iceberg/iceberg-in-xiaomi-27.png)
 
 第三点因为iceberg它的隐式分区的特性，会带来一些分区上的选择。比如在构建这个链路中，一般如果以天为分区的话，会有这么两种选择，第一种是使用处理时间作为分区，这样的话用户可以将实时的数据落到当天的分区，也可以离线的去修昨天的数据（Overwrite或用Merge Into去修）。这样的一个优点是这种场景它的实时和离线数据是没有交集的。
 
 另外一种是用户因为它隐式特性，可能会选择一些事物的时间作为分区，比如最常见的一些订单的创建时间做为分区。这样的话，当我们在变更的场景下我们实时的写入数据会操作多个分区，那我们离线修的时候，因为每个分区都是增量数据，那历史全量都需要修一下，这带来的一个问题就是我们实时和离线处理的数据存在一个交集，这就引入了另外一个问题。
 
-![3-2 iceberg-in-xiaomi-28](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-28.png)
+![iceberg-in-xiaomi-28](./images/xiaomi-iceberg/iceberg-in-xiaomi-28.png)
 
 
 
@@ -200,7 +200,7 @@ Merge Into通过隔离级别处理有存在交集数据（事务）带来的问�
 
 第二个是“快照隔离级别”，在快照隔离级别下，在我们Merge Into提交的时候，当之前提交的一些冲突的事务给覆盖掉，这样的话假如有flink，spark这样的流和批同时去写，它们到底是哪一个提交成功，这种情况是不可预知的。这导致我们结果其实也不准确。这两种问题也是当时我们设想过的使用这两种隔离界别都会存在一些问题，这个我们还一直在探索中。
 
-![3-2 iceberg-in-xiaomi-29](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-29.png)
+![iceberg-in-xiaomi-29](./images/xiaomi-iceberg/iceberg-in-xiaomi-29.png)
 
 最后下面我们列一个正式应用中使用的批流一体的链路，可以看到上面这段红线的历史数据是存在kudu里面，实时数据是存在Talos（就是我们的Kafka）里面，用户如果想把这整个流批一体的链路完成的话，他可以使用flink-batch当然也可以用spark去做各个层的初始化，这上面的红线就是去读存量数据去初始化。
 
@@ -208,21 +208,21 @@ Merge Into通过隔离级别处理有存在交集数据（事务）带来的问�
 
 当然这里也有用户想用overwrite，如果用overwrite的话我们的实时有可能会把这一部分数据消费到，这样这个作业可能就变得不稳定。当然我们可以去改代码，比如说把这个overwrite给过滤掉，就是不需要这一块。不需要这一块数据可能会导致我们DM这一层还需要一个离线作业去做一个修复。这也是需要用户需要做的一个抉择。以上就是我们对批流一体的探索。
 
-![3-2 iceberg-in-xiaomi-30](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-30.png)
+![iceberg-in-xiaomi-30](./images/xiaomi-iceberg/iceberg-in-xiaomi-30.png)
 
 ### 第四章：未来规划
 
 第四个最后我们介绍一下我们未来的规划。
 
-![3-2 iceberg-in-xiaomi-31](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-31.png)
+![iceberg-in-xiaomi-31](./images/xiaomi-iceberg/iceberg-in-xiaomi-31.png)
 
 我们未来打算对Flink CDC2.0持续跟进，Flink CDC2.0当中对全量和增量的切换比较友好，而我们现在的实现方式其实是参考hypersource这样一个方式来做切换。第二个我们会去优化治理下我们compaction 服务，当前iceberg做compaction都是在后台去运行的，这样每个表（尤其是where表）都需要起一个作业，如果多了的话会有资源占用的问题。第三个我们会去跟进一下iceberg和flink1.14结合，当前我们的flink是1.12的版本，它的source结构没有那么的完美，我们去切iceberg的时候经常会遇到一些反压，我们会在后面去跟进一下flink1.14和iceberg的一些结合。
 
-![3-2 iceberg-in-xiaomi-32](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-32.png)
+![iceberg-in-xiaomi-32](./images/xiaomi-iceberg/iceberg-in-xiaomi-32.png)
 
 
 
-以上就是我本次的分享，谢谢大家。![3-2 iceberg-in-xiaomi-33](./images/xiaomi-iceberg/3-2 iceberg-in-xiaomi-33.png)
+以上就是我本次的分享，谢谢大家。![iceberg-in-xiaomi-33](./images/xiaomi-iceberg/iceberg-in-xiaomi-33.png)
 
 
 
