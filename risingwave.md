@@ -1,6 +1,6 @@
 我先自我介绍一下吧
-我是呃付雨或者叫我Eric Fu
-然后我现在在呃RisingWave labs
+我是付雨或者叫我Eric Fu
+然后我现在在RisingWave labs
 就是今天
 今天我要介绍的这个产品叫RisingWave
 然后这个公司叫RisingWave labs
@@ -14,43 +14,28 @@
 然后我叫付雨
 然后我是这家公司的
 我现在在RisingWave labs 担任这个内核开发工程师
-然后在加入这家公司之前
-我在Splunk跟阿里巴巴cloud先后待过
+在加入这家公司之前我在Splunk跟阿里巴巴cloud先后工作过
 
 之前我是在做大数据还有数据库那块
-然后在现在这家公司大概工作了两年这样
-然后这个数据库
-其实恰好也就差不多开发了两年
+然后在risingwave labs公司大概工作了两年
+risignwave数据库恰好也差不多开发了两年
 对之后会有一个历史的一个演示
 然后关于RisingWave，我们称之为是一个流式数据库，streaming database
-然后它的这个slogan是一个分布式的云原生的SQL数据库
-然后用来做streaming的处理
-然后同时它也是开源的
-就这底下列出了几个网址
-一个是公司的官网
-然后还有开源的文档
-还有我们的这个source code都放在GitHub上
+然后它的这个slogan是一个分布式的云原生的SQL数据库，用来做streaming的处理，同时它也是开源的。
+就这底下列出了几个网址，一个是公司的官网，一个是开源的文档。还有我们的source code都放在GitHub上。
 
 那这种本身之前这家公司叫奇点数据
 然后他可能因为一些原因在国内的数据库圈还有
-对技术下还是有一些影响力的
-然后公司的创立是在2021年的早期
-然后在21年的7月份的时候
-我们做了一个事情
-是把整个code base完全丢弃掉了
-把之前的
-C++的code base完全迁移到了rust对
+对技术下还是有一些影响力的。
+公司的创立是在2021年的早期，在21年的7月份的时候，我们做了一个事情，把整个code base完全丢弃掉，把之前的C++的code base完全迁移到了rust。
 这个当时应该还引起了一定的轰动
 尤其是在Rust的社区有很大的反响
 然后2022年的4月份差不多也就把这一套架构开放完成了
 所以做了一个决定就是开源
 放到了GitHub上使用Apache协议
-然后到今年的6月份
-也就是上一个月
-我们刚刚发布了RisingWave cloud
-也就是商业化版本的一个GA
-然后在这个月可能在下周的周末就会发布
-让这个DATABASE
+然后到今年的6月份，我们刚刚发布了RisingWave cloud，也就是商业化版本的一个GA。
+然后在这个月下周的周末就会发布
+RisingWave Database
 也就是他的开源的版本的1.0版本
 就代表着基本功能集的一个稳定吧
 然后之后也会在1.0上继续
@@ -58,78 +43,61 @@ C++的code base完全迁移到了rust对
 
 然后今天的主题分为以下这些：
 一个是首先介绍一下什么叫streaming
-database它和现有的streaming的这些框架
-像flink Spark之类的有什么区别然后
+database它和现有的streaming的这些框架，像flink Spark之类的有什么区别。
 
-我们会介绍一些
-呃这其中这其中用到的一些核心概念
+二：我们会介绍这其中用到的一些核心概念
 然后它的架构设计
-最后还有一些关于use cases方面的分享
+三：最后还有一些关于use cases方面的分享
 首先什么是streaming DATABASE
 就是DATABASE我们都很熟对吧
 DATABASE的话
 你的使用的workflow一般是先去
 建一些表然后在里面插入
 呃用户的数据做一些增删改查
-然后在表的基础上可以做一些query
-然后这些query一般是写在application里面的
-就是写在代码里的
+然后在表的基础上可以做一些query，这些query一般是写在application里面的，就是写在代码里的。
 比如说我需要为用户呈现一个今天的订单的销售量
-然后这个时候，应用程序那一层
-web server这一层就会向database发送一个请求
+然后这个时候，应用程序web server这一层就会向database发送一个请求
 做一个select的一个查询
 然后把结果算出来再返回给application那一层
-application再去渲染网页等等
-然后streaming database希望的是做一个颠覆
+application再去渲染网页等等。
 
-就是他对于这些
-尤其是对于一些稍微复杂一些的查询
+然后streaming database希望的是做一个颠覆，就是他尤其是对于一些稍微复杂的查询，
 比如说包含了一些join跟聚合的查询
 他希望能增量的维护他的结果
 而不是在查询的那个时候就去算
 那其实这个概念
 我相信大家应该都很熟悉了
-就是streaming领域经常聊到的
-流表的对偶性
+就是streaming领域经常聊到的流表的对偶性
 就是stream是table的一个change log
 而table是stream的change log的物化的结果
 这个概念我相信大家都很熟悉了
-然后risingwave的整个这些概念
+然后RisingWave的整个这些概念
 其实也就是在这样的一个idea上build出来的
 
-下一个最经典的一个概念就是tables
-就和Flink一样这里有一个tables
-但是不同的是这里的table是一个真正的table
+下一个最经典的一个概念就是tables，和Flink一样这里有一个tables。但是不同的是这里的table是一个真正的table，
 就是它里面是有数据的
 它是物理的把数据存在里面的
 然后你也可以像正常使用postgres
 或者使用mysql那样
-进行增删改查
-进行update delete insert这些操作
-这些语句的语法都是跟postgres是一样的
-OK然后table
-它也可以有一个可选的Connector的选项
+进行增删改查，进行update、 delete、 insert这些操作
+这些语句的语法都是跟postgres是一样的。
+table它也可以有一个可选的Connector的选项
 如果你给table加上了Connector
 就像右下角这个图上的这段代码一样
 那它其实会跟上游建立一个连接
-然后对于mysql来说
-我们采用的方式是内部会有一个debizium的instance
+然后对于mysql来说我们采用的方式是内部会有一个debizium的instance，
 它会不断地从mysql那边拿到最新的WAL
 最新的change log
-然后apply到
-risingwave内部的这张对应的表上
+然后apply到RisingWave内部的这张对应的表上
 所以你看到的状况就是
-每次你去select的这张votes表
-它的数据都是跟着上游在不断的跳动的。
+每次你去select的这张votes表，它的数据都是跟着上游在不断的跳动的。
 
-materialized views概念相信大家也很熟悉了
+Materialized Views概念相信大家也很熟悉了
 我们知道view在数据库里面是一个很常见的功能
 你可以通过sql query来定义一个view
 然后所有对于这些view的查询
-数据库会现场的把它翻译成一个类似于执行
-那样一个query的查询的结果
-但是materialized view是与之相对的，就是它会把这个结果给物化下来
-然后在一些传统的数据库中，materialized view它是并不会动态的变化的。它是一个静态的一个数据
+数据库会现场的把它翻译成一个类似于执行那样一个query的查询的结果。
+但是materialized view是与之相对的，就是它会把这个结果给物化下来。在一些传统的数据库中，materialized view它是并不会动态的变化的，它是一个静态的数据。
 那我们这里的materialized它是动态的
 它会根据下面的这些基表
 就比如说
@@ -139,31 +107,22 @@ materialized views概念相信大家也很熟悉了
 同时因为materialized view
 它的定义是通过SQL来定义的
 你可以把任何你熟悉的这些功能
-包括join groupby  timewindow window function
-甚至更多的种种的功能都直接写在SQL里
+包括join、 groupby、  time window、 window function甚至更多的种种的功能都直接写在SQL里
 以SQL的形式去定义它
 呃RisingWave在这一点上尤其是比较强大的
 就它拥有一个非常完整的一套SQL优化执行的流程
 嗯可以认为对于SQL几乎是没有限制的
-我们测试的时候使用了TPCH
-还有Nexmark的这些query作为测试
-它都是可以跑的
+我们测试的时候使用了TPCH，还有Nexmark的这些query作为测试，它都是可以跑的。
 而TPCH大家知道
 是一个比较复杂的一个分析型query的一个集合
-对这也代表了我们在SQL features上投入了很多精力
-然后就是最优良的一个特性
-就是它的结果
-这个materialized view中查询出来的结果总是和
-base table中的结果是一致的
+对这也代表了我们在SQL features上投入了很多精力。
+然后就是最优良的一个特性，就是它的结果。这个materialized view中查询出来的结果总是和
+base table中的结果是一致的。
 那这是什么意思呢
 就比如说对于这样一个“MV”
 
-比如说你可以在RisingWave上开启一个事务
-begin transaction
-然后执行这样一条select
-它的结果和你直接去
-对这个StoriesWithVC这样一个materialized view
-所执行select的结果总是完全一致的
+比如说你可以在RisingWave上开启一个事务begin transaction，然后执行这样一条select，
+它的结果和你直接去对这个StoriesWithVC这个materialized view所执行select的结果总是完全一致的。
 就是我们内部通过一些时间戳
 还有一些方式去保证的
 之后会具体的聊到
@@ -175,28 +134,15 @@ begin transaction
 就有点类似于一个MPP的计算框架
 它里面有很多的算子
 然后算子之间可以进行数据的shuffle
-每个算子会计算
-呃整体数据的一个分片
-或者说一个partition啊
+每个算子会计算整体数据的一个分片或者说是一个partition。
 我们在用户创建完materialized views之后
 就会build出这样一个data pipeline
 然后逻辑上的这个pipeline就长得跟
 
 就长得跟这个执行计划是一致的
-比如说
-假设我们这样一个query中有一个join
-然后有一个aggregation
-那它就是这个样子的
-但是经过一些
-呃fragmental这样的一些优化组建之后
-它会变成一个分布式的plan
-然后这个plan就可以被实际的
-调度到多个节点上进行执行
-然后RisingWave做所做的事情
-也就是维护这么一个呃
-schedule这样一个计划的持续执行
-除了呢materialized views和table以外
-还有一个很重要的概念是source and sink
+比如说假设我们这样一个query中有一个join，然后有一个aggregation，
+那它就是这个样子的。但是经过一些fragmental这样的一些优化组建之后，它会变成一个分布式的plan。然后这个plan就可以被实际的调度到多个节点上进行执行。RisingWave做所做的事情也就是维护这么一个schedule（计划）的持续执行。
+除了materialized views和table以外，还有一个很重要的概念是source and sink。
 这个肯定也不陌生
 然后source相比于table的一个区别是
 它是不会物化数据
@@ -225,43 +171,27 @@ pipeline里面进行计算
 就是像左下角这个图那样
 从开头的source或者table
 到中间的materialized views 的定义
-再到最后的sink
-或者没有sink
-就干脆就写到这个materialized views里面
-然后直接通过外部系统去查
-然后右边这两个框是一些
-关于source的一个参考吧
-就比如说你可以和table其实很像
-你需要定义这些field的的数据类型，然后Connector等等的
+再到最后的sink，或者没有sink，就干脆就写到这个materialized views里面，直接通过外部系统去查。右边这两个框是一些关于source的一个参考
+就比如说你可以和table其实很像你需要定义这些field的的数据类型，以及Connector等等的
 
-这张图是取自于RisingWave的官方文档
-就它体现了同样也是一个基本的工作流
+
+上图是取自于RisingWave的官方文档，它体现了同样也是一个基本的工作流
 一个常见的一个一个configuration
-从进来的时候可能从MQ kafka pulsar
-然后也有可能是数据库
-像postgres或者mysql
-也有可能是这样的存储
-然后进入到RisingWave内部进行一个计算
-这里面就是由materialized views所定义的
-那个计算的
-DAG的图
+从进来的时候可能从MQ kafka pulsar，也有可能是数据库，像postgres或者mysql，也有可能是S3这样的存储。
+进入到RisingWave内部进行一个计算
+这里面就是由materialized views所定义的那个计算的DAG的图
 然后到最后
 你可以选择把它放在materialized views里面
-直接通过像Grafana
-superset这些BI工具去查去展示
+直接通过像Grafana、superset这些BI工具去查去展示
 或者通application去直接select出来
 也可以说我把它发射给下游的其他系统让他们来做
-除了刚刚那张图上看到的上下游以外
-还有一些可视化工具像postgres客户端这些
+除了刚刚那张图上看到的上下游以外，还有一些可视化工具，像postgres客户端这些
 这也是得益于我们设计上是让前端的
 协议是和postgres兼容的
 包括语法上
-还有那些系统的Catalog表上都是尽可能兼容的
+还有那些系统的Catalog表上都是尽可能兼容的。
 所以很多的客户端其实不经任何测试你都可以直接拿上去用
-当然我们官方会有一个维护的列表
-就是上面写了所有我们
-宣布支持的一个客户端的，还有BI tools的列表
-就比如说图上列出的这些。
+当然我们官方会有一个维护的列表，上面写了所有我宣布支持的一个客户端和BI tools的列表，就如图上列出的这些。
 
 然后关于storage这方面啊
 云上的RisingWave版本使用的是AWS S3是作为他的对象存储
@@ -271,11 +201,9 @@ superset这些BI工具去查去展示
 如果在其他的云环境下
 通常也会有一个类似于S3的对象存储的接口
 
-这里也是经常被人问起的一个问题
-就是RisingWave和一些OLAP的database有什么区别
-因为我们都叫database嘛
-那这张图上就体就讲解了这件事情
-olap DATABASE他的基本思想是adhoc的query
+这里也是经常被人问起的一个问题，就是RisingWave和一些OLAP的database有什么区别，因为我们都叫database。
+那这张图上就体就讲解了这件事情，
+OLAP DATABASE他的基本思想是adhoc的query
 就每一次的query
 他并不会去关心说
 我这个query
@@ -283,7 +211,8 @@ olap DATABASE他的基本思想是adhoc的query
 他每一次都会啊
 重新用那个执行计划去做一个table scan
 然后在内存中做一些计算
-然后最后输出来
+然后最后输出来。
+
 所以换句话说
 即使你每次的query
 可能就差一点点不同
@@ -306,22 +235,15 @@ RisingWave
 用户进行了增删改查的操作以后
 这些操作都会以change log的形式
 留到下一个算子中
-然后这里也同样
-这里的计算逻辑其实没有什么区别
+然后同样这里的计算逻辑其实没有什么区别
 但是这里的算子是被持续进行的
 而当用户真正做select from
 STORES with basic这个materialized views的时候
-它可以在瞬间直接就返回出结果
-然后
-以这样的设计就会带来一些结果吧
-就比如说
-嗯query latancy方面
-嗯你在一个数仓的
-啊数据库上进行的查询
-通常往往是啊快的也可以到秒级以内
+它可以在瞬间直接就返回出结果。
+然后以这样的设计就会带来一些结果，
+就比如说，在query latancy方面，你在一个数仓的数据库上进行的查询，通常往往是啊快的也可以到秒级以内。
 但是如果更复杂一些可能是在秒级
-甚至啊对于一些批处理的请求
-可能是分钟级的
+甚至啊对于一些批处理的请求，可能是分钟级的。
 在streaming的base上
 因为这就是相当于在
 table上的一个带索引的一个查询
@@ -333,18 +255,13 @@ table上的一个带索引的一个查询
 比如说10分钟或者一小时，甚至一天的一个批
 然后把它一次性写进去，然后之后的查询
 就能体现出这个新的写入
-而Streaming database里面
-呃我们的整个计算和存储
+而Streaming database里面，我们的整个计算和存储
 都是为这样的持续写入而设计的
 所以它的变更可以认为是秒级的
 就任何的写入，在很短的时间内
-经过整个pipeline就能看到它体现出的这个结果的变化
-另一个对比是跟常见的OLTP dataBase的对比
-这里同时也包括了一些time service DATABASE的一个对比吧
-OLTP DATABASE其实它和
-呃刚刚那张图上提到的一些相似之处
-就是它不会对最后的结果及做任何处理
-它也是写入到table中
+经过整个pipeline就能看到它体现出的这个结果的变化。
+另一个对比是跟常见的OLTP Database的对比，这里同时也包括了一些time service DATABASE的对比。
+OLTP DATABASE其实它和刚刚那张图上提到的一些相似之处就是它不会对最后的结果及做任何处理。它也是写入到table中
 这是一个最大的一个区别
 然后OLTP database也是为了这样的workload
 做了大量的刻画吧
@@ -356,18 +273,7 @@ OLTP DATABASE其实它和
 比如说对于CRUD workload的性能上的侧重
 然后同时在很多的业务部署中
 
-OLTP database
-才是那个业务数据的sourth-of-truth
-所谓sourth-of-truth就是当整个系统的
-数据有不一致的时候
-你会以哪个为准
-那显然对于一个业务库来说
-显然是以业务库为准
-Olap的
-Olap里面存的数据
-如果你可能觉得有不一致
-随时可以把它杀掉
-然后重新从上导下来
+OLTP Database才是那个业务数据的sourth-of-truth，所谓sourth-of-truth就是当整个系统的数据有不一致的时候，你会以哪个为准。显然对于一个业务库来说，是以业务库为准。OLAP里面存的数据，如果你觉得有不一致，随时可以把它杀掉，然后重新从上游导下来。
 然后streaming database
 在这一点上有这些不一样吗
 首先我们不会支持完整的acid、transaction
@@ -386,16 +292,14 @@ pipeline传过来的这样一个数据
 已经把这些问题都解决了
 作为一个专注于数据分析的一这么一个DB
 我们只要做好分析这一件事情就好了
-OK
+
+
 之前的slides可以认为都是对于streaming DATABASE的一个概念上
 或者说使用的场景上的一个介绍
-然后接下来我会进入到internals的这部分
-就是讲解一下它内部设计上的一些考量
-尤其是跟现有的flink这些系统的一些不同
+然后接下来我会进入到internals的这部分，就是讲解一下它内部设计上的一些考量，尤其是跟现有的flink这些系统的一些不同。
 首先总体架构上来看
-这是一个非常离散的
-非常disagregated的一个架构
-嗯
+这是一个非常离散，非常disaggregated的一个架构。
+
 可以被SCALe的部分分为frontend跟compute
 那这个是很容易理解的
 compute显然是需要被scale的
@@ -555,9 +459,7 @@ SQL中用到的operator就可以了
 呃经常见到的一些优化
 
 storage上
-如果你熟悉Flink的话那你
-一定听过这个chandy-lamport algorithm的
-checkpoint的算法
+如果熟悉Flink的话那一定听过这个Chandy-Lamport algorithm的checkpoint的算法
 就是它是一个在一个分布式系统上获得全局一致的
 snapshot的这样一个算法
 然后flink可将它用于做checkpoint
