@@ -1,156 +1,45 @@
-我先自我介绍一下吧
-我是付雨或者叫我Eric Fu
-然后我现在在RisingWave labs
-就是今天
-今天我要介绍的这个产品叫RisingWave
-然后这个公司叫RisingWave labs
 
-这也是一家年轻的公司
-大概就两年之前成立的
+今天我要介绍的这个产品叫RisingWave，来自RisingWave labs公司，这是一家年轻的公司，大概就两年之前成立的。希望通过这个分享给大家一些流计算上的一些新的idea或者是insight，也希望对你们基础选型或者内部的系统的演进有一些帮助。
 
-希望通过这个分享给大家一些流计算上的一些新的idea或者是insight吧
-然后也希望对你们基础选型或者内部的系统的演进有一些帮助
+我叫付雨，现在在RisingWave labs 担任这个内核开发工程师。在加入这家公司之前我在Splunk跟阿里云先后工作过。之前我是在做大数据还有数据库那块，在RisingWave labs公司大概工作了两年。RisingWave数据库恰好也差不多开发了两年，下面会有一个历史的演示。关于RisingWave，我们称之为是一个流式数据库，streaming database。它的slogan是一个分布式的云原生的SQL数据库，用来做streaming的处理，同时它也是开源的。就这底下列出了几个网址，包括公司的官网，开源的文档。还有我们的source code都放在GitHub上。
 
-然后我叫付雨
-然后我是这家公司的
-我现在在RisingWave labs 担任这个内核开发工程师
-在加入这家公司之前我在Splunk跟阿里巴巴cloud先后工作过
-
-之前我是在做大数据还有数据库那块
-然后在risingwave labs公司大概工作了两年
-risignwave数据库恰好也差不多开发了两年
-对之后会有一个历史的一个演示
-然后关于RisingWave，我们称之为是一个流式数据库，streaming database
-然后它的这个slogan是一个分布式的云原生的SQL数据库，用来做streaming的处理，同时它也是开源的。
-就这底下列出了几个网址，一个是公司的官网，一个是开源的文档。还有我们的source code都放在GitHub上。
-
-那这种本身之前这家公司叫奇点数据
-然后他可能因为一些原因在国内的数据库圈还有
-对技术下还是有一些影响力的。
-公司的创立是在2021年的早期，在21年的7月份的时候，我们做了一个事情，把整个code base完全丢弃掉，把之前的C++的code base完全迁移到了rust。
-这个当时应该还引起了一定的轰动
-尤其是在Rust的社区有很大的反响
-然后2022年的4月份差不多也就把这一套架构开放完成了
-所以做了一个决定就是开源
-放到了GitHub上使用Apache协议
-然后到今年的6月份，我们刚刚发布了RisingWave cloud，也就是商业化版本的一个GA。
-然后在这个月下周的周末就会发布
-RisingWave Database
-也就是他的开源的版本的1.0版本
-就代表着基本功能集的一个稳定吧
-然后之后也会在1.0上继续
-做更多的修修补补然后也会不断添加新的功能
+公司前生是叫奇点数据，他可能因为一些原因在国内的数据库圈还是有一些影响力的。公司的创立是在2021年的早期，在21年的7月份的时候，我们做了一个事情，把整个code base完全丢弃掉，把之前的C++的code base完全迁移到了rust。这当时应该还引起了一定的轰动，尤其是在Rust的社区有很大的反响。在2022年的4月份差不多也就把这一套架构开发完成了，之后做了一个开源的决定。放到了GitHub上使用Apache协议，到今年的6月份，我们刚刚发布了RisingWave cloud，也就是商业化版本的一个GA。在这个月下周的周末就会发布RisingWave Database。也就是他的开源1.0版本，这代表着基本功能集的一个稳定。然后之后也会在1.0上继续做更多的修修补补然后也会不断添加新的功能。
 
 然后今天的主题分为以下这些：
-一个是首先介绍一下什么叫streaming
-database它和现有的streaming的这些框架，像flink Spark之类的有什么区别。
-
+一个是首先介绍一下什么叫streaming database它和现有的streaming的这些框架，像flink Spark之类的有什么区别。
 二：我们会介绍这其中用到的一些核心概念
-然后它的架构设计
-三：最后还有一些关于use cases方面的分享
-首先什么是streaming DATABASE
-就是DATABASE我们都很熟对吧
-DATABASE的话
-你的使用的workflow一般是先去
-建一些表然后在里面插入
-呃用户的数据做一些增删改查
-然后在表的基础上可以做一些query，这些query一般是写在application里面的，就是写在代码里的。
-比如说我需要为用户呈现一个今天的订单的销售量
-然后这个时候，应用程序web server这一层就会向database发送一个请求
-做一个select的一个查询
-然后把结果算出来再返回给application那一层
-application再去渲染网页等等。
+三：然后它的架构设计
+四：最后还有一些关于use cases方面的分享
 
-然后streaming database希望的是做一个颠覆，就是他尤其是对于一些稍微复杂的查询，
-比如说包含了一些join跟聚合的查询
-他希望能增量的维护他的结果
-而不是在查询的那个时候就去算
-那其实这个概念
-我相信大家应该都很熟悉了
-就是streaming领域经常聊到的流表的对偶性
-就是stream是table的一个change log
-而table是stream的change log的物化的结果
-这个概念我相信大家都很熟悉了
-然后RisingWave的整个这些概念
-其实也就是在这样的一个idea上build出来的
+首先什么是streaming database，就是database我们都很熟悉。对于database的话，你使用的workflow一般是先去建一些表，然后在里面插入用户的数据做一些增删改查，然后在表的基础上可以做一些query，这些query一般是写在application里面的，就是写在代码里的。
 
-下一个最经典的一个概念就是tables，和Flink一样这里有一个tables。但是不同的是这里的table是一个真正的table，
-就是它里面是有数据的
-它是物理的把数据存在里面的
-然后你也可以像正常使用postgres
-或者使用mysql那样
-进行增删改查，进行update、 delete、 insert这些操作
-这些语句的语法都是跟postgres是一样的。
-table它也可以有一个可选的Connector的选项
-如果你给table加上了Connector
-就像右下角这个图上的这段代码一样
-那它其实会跟上游建立一个连接
-然后对于mysql来说我们采用的方式是内部会有一个debizium的instance，
-它会不断地从mysql那边拿到最新的WAL
-最新的change log
-然后apply到RisingWave内部的这张对应的表上
-所以你看到的状况就是
-每次你去select的这张votes表，它的数据都是跟着上游在不断的跳动的。
+比如我需要为用户呈现今天的订单的销售量，这个时候，应用程序web server这一层就会向database发送一个请求，做一次select查询，把结果算出来再返回给application那一层，application再去渲染网页等等。
 
-Materialized Views概念相信大家也很熟悉了
-我们知道view在数据库里面是一个很常见的功能
-你可以通过sql query来定义一个view
-然后所有对于这些view的查询
-数据库会现场的把它翻译成一个类似于执行那样一个query的查询的结果。
-但是materialized view是与之相对的，就是它会把这个结果给物化下来。在一些传统的数据库中，materialized view它是并不会动态的变化的，它是一个静态的数据。
-那我们这里的materialized它是动态的
-它会根据下面的这些基表
-就比如说
-这个query中的STORIES 和 votes
-这两个表的数据
-而实时的变化啊
-同时因为materialized view
-它的定义是通过SQL来定义的
-你可以把任何你熟悉的这些功能
-包括join、 groupby、  time window、 window function甚至更多的种种的功能都直接写在SQL里
-以SQL的形式去定义它
-呃RisingWave在这一点上尤其是比较强大的
-就它拥有一个非常完整的一套SQL优化执行的流程
-嗯可以认为对于SQL几乎是没有限制的
-我们测试的时候使用了TPCH，还有Nexmark的这些query作为测试，它都是可以跑的。
-而TPCH大家知道
-是一个比较复杂的一个分析型query的一个集合
-对这也代表了我们在SQL features上投入了很多精力。
-然后就是最优良的一个特性，就是它的结果。这个materialized view中查询出来的结果总是和
-base table中的结果是一致的。
-那这是什么意思呢
-就比如说对于这样一个“MV”
+Streaming database希望的是做一个颠覆，尤其是对于一些稍微复杂的查询，比如说包含了一些join和聚合的查询，他希望能增量的维护他的结果，而不是在查询的那个时候就去算。
 
-比如说你可以在RisingWave上开启一个事务begin transaction，然后执行这样一条select，
-它的结果和你直接去对这个StoriesWithVC这个materialized view所执行select的结果总是完全一致的。
-就是我们内部通过一些时间戳
-还有一些方式去保证的
-之后会具体的聊到
+我相信大家应该都很熟悉streaming领域的一个概念，就是流表的对偶性。即stream是table的一个change log，而table是stream的change log的物化的结果。RisingWave的整个概念其实也就是在这样的一个idea上build出来的。
 
-先看一个基本的就是materialized views
-它背后是一个分布式的streaming的pipeline
-对这是毫无疑问的
-嗯这方面我觉得可能大多数的现代的Steaming框架都差不多
-就有点类似于一个MPP的计算框架
-它里面有很多的算子
-然后算子之间可以进行数据的shuffle
-每个算子会计算整体数据的一个分片或者说是一个partition。
-我们在用户创建完materialized views之后
-就会build出这样一个data pipeline
-然后逻辑上的这个pipeline就长得跟
+下一个最经典的概念就是tables，和Flink一样这里有个tables。但是不同的是这里的table是一个真正的table，它里面是有数据的，它是物理的把数据存在里面。你也可以像正常使用postgres或者使用mysql那样进行增删改查，进行update、 delete、 insert这些操作，这些语句的语法都是跟postgres是一样的。
 
-就长得跟这个执行计划是一致的
-比如说假设我们这样一个query中有一个join，然后有一个aggregation，
-那它就是这个样子的。但是经过一些fragmental这样的一些优化组建之后，它会变成一个分布式的plan。然后这个plan就可以被实际的调度到多个节点上进行执行。RisingWave做所做的事情也就是维护这么一个schedule（计划）的持续执行。
-除了materialized views和table以外，还有一个很重要的概念是source and sink。
-这个肯定也不陌生
-然后source相比于table的一个区别是
-它是不会物化数据
-但是相对的它带来一个
-限制就是他只能接受append only的限制
-这个其实很自然
-就比如说你去接一个
-kafka或者说接一个S3这样的source
+table它也可以有一个可选的connector的选项，如果你给table加上了connector，就像右下角这个图上的这段代码一样，它其实会跟上游建立一个连接。然后对于mysql来说我们采用的方式是内部会有一个debizium的instance，不断地从mysql那边拿到最新的WAL和最新的change log，然后apply到RisingWave内部的这张对应的表上。所以你看到的状况就是，每次你去select的这张votes表，它的数据都是跟着上游在不断的跳动的。
+
+Materialized Views概念相信大家也很熟悉，众所周知view在数据库里面是一个很常见的功能，你可以通过sql query来定义一个view，所有对于这些view的查询，数据库会现场把它翻译成一个类似于执行一个query查询的结果。但是materialized view是与之相对的，就是它会把这个结果给物化下来。在一些传统的数据库中，materialized view它是并不会动态变化的，它是一个静态的数据。
+
+对于RisingWave的materialized它是动态的，它会根据下面的基表，如这个query中的stories 和 votes这两个表的数据而实时的变化。同时因为materialized view的定义是通过SQL来定义的，你可以把任何你熟悉的这些功能，包括join、 groupby、  time window、 window function甚至更多的功能都直接写在SQL里，以SQL的形式去定义它。RisingWave在这一点上尤其强大，它拥有非常完整的一套SQL优化执行的流程，可以认为对于SQL几乎是没有限制的。
+
+我们测试的时候使用了TPCH，还有Nexmark的这些query作为测试，它都是可以运行。TPCH是一套比较复杂的分析型query的集合，这也代表了我们在SQL features上投入了很多精力。
+
+然后就是最优良的一个特性，它的结果。这个materialized view中查询出来的结果总是和base table中的结果是一致的。这是什么意思呢？比如说对于这样一个materialized view，你可以在RisingWave上开启一个事务begin transaction，然后执行这样一条select，它的结果和你直接对StoriesWithVC这个materialized view所执行select的结果总是完全一致的。
+我们内部通过一些时间戳和一些方式去保证这个一致性。之后会具体介绍。
+
+先看一个基本的materialized views，毫无疑问它的背后是一个分布式的streaming的pipeline。在这方面对于大多数的现代的Steaming框架都差不多，有点类似于MPP的计算框架。它里面有很多的算子，然后算子之间可以进行数据的shuffle，每个算子会计算整体数据的一个分片或者说是一个partition。我们在用户创建完materialized views之后就会build出这样一个data pipeline，然后逻辑上的pipeline就长得跟执行计划是一致的。
+
+比如说这样一个query，其中有一个join，有一个aggregation，那它就是图上这个样子。经过一些fragmental的组件优化之后，会变成一个分布式的plan。然后这个plan就可以被实际的调度到多个节点上进行执行。RisingWave做所做的事情也就是维护这么一个schedule（计划）的持续执行。
+
+除了materialized views和table以外，还有一个很重要的概念是source and sink，这个肯定不陌生。
+source相比于table的一个区别是它不会物化数据，
+但是相对的它带来一个限制就是他只能接受append only的限制，这个其实很自然。
+就比如说接入kafka或者说是接入S3类似的source
 那他做的事情就是不断的从
 source里面去取出新的message
 对于change的定义
@@ -175,586 +64,126 @@ pipeline里面进行计算
 就比如说你可以和table其实很像你需要定义这些field的的数据类型，以及Connector等等的
 
 
-上图是取自于RisingWave的官方文档，它体现了同样也是一个基本的工作流
-一个常见的一个一个configuration
-从进来的时候可能从MQ kafka pulsar，也有可能是数据库，像postgres或者mysql，也有可能是S3这样的存储。
-进入到RisingWave内部进行一个计算
-这里面就是由materialized views所定义的那个计算的DAG的图
-然后到最后
-你可以选择把它放在materialized views里面
-直接通过像Grafana、superset这些BI工具去查去展示
-或者通application去直接select出来
-也可以说我把它发射给下游的其他系统让他们来做
-除了刚刚那张图上看到的上下游以外，还有一些可视化工具，像postgres客户端这些
-这也是得益于我们设计上是让前端的
-协议是和postgres兼容的
-包括语法上
-还有那些系统的Catalog表上都是尽可能兼容的。
-所以很多的客户端其实不经任何测试你都可以直接拿上去用
-当然我们官方会有一个维护的列表，上面写了所有我宣布支持的一个客户端和BI tools的列表，就如图上列出的这些。
+上图是取自于RisingWave的官方文档，它同样体现了一个基本的工作流常见的一个configuration。
+从进来的时候可能从MQ kafka pulsar，也有可能是数据库，像postgres或者mysql，也有可能是S3这样的存储。进入到RisingWave内部进行一个计算，这里面就是由materialized views所定义计算的DAG的图。到最后你可以选择把它放在materialized views里面，直接通过像Grafana、superset这些BI工具去查去展示，或者通过application直接select出来，也可以把它发送到下游的其他系统。除了刚刚那张图上看到的上下游以外，还有一些可视化工具，像postgres客户端这些，这也是得益于我们在设计上是让前端的协议和postgres包括语法上，还有那些系统的Catalog表上都尽可能的兼容。所以很多的客户端其实不经任何测试都可以直接拿上去使用，当然我们官方会有一个维护的列表，上面列出了所有我们宣布支持的客户端和BI工具，如上图所列。
 
-然后关于storage这方面啊
-云上的RisingWave版本使用的是AWS S3是作为他的对象存储
-当然这个其实并不受什么限制
-如果和如果私有化部署的话
-可以选择minio或者HDFS等等等
-如果在其他的云环境下
-通常也会有一个类似于S3的对象存储的接口
+关于storage这方面，云上的RisingWave版本使用的是AWS S3作为他的对象存储，当然这里其实并不受什么限制的。如果是私有化部署的话，可以选择minio或者HDFS等等。如果在其他的云环境下，通常也会有一个类似于S3的对象存储的接口。
 
-这里也是经常被人问起的一个问题，就是RisingWave和一些OLAP的database有什么区别，因为我们都叫database。
-那这张图上就体就讲解了这件事情，
-OLAP DATABASE他的基本思想是adhoc的query
-就每一次的query
-他并不会去关心说
-我这个query
-跟上一次的query有什么关联
-他每一次都会啊
-重新用那个执行计划去做一个table scan
-然后在内存中做一些计算
-然后最后输出来。
+这里也是经常被人问起的一个问题，就是RisingWave和一些OLAP的database有什么区别，因为我们都叫database，那这张图上就讲解了这件事情。
 
-所以换句话说
-即使你每次的query
-可能就差一点点不同
-但是他并没有利用到这一点
-而streaming database就是把它反转一下变成了一个增量的计算。我们可以看这张图，对于同样一条query
-这个查询的query其实就是之前create materialized views的那一页slide上所写的那一个。
-如果对于一个普通的传统的数据库，他做的事情是把用户的变更物化到表里，这个毫无疑问对吧。
-然后在真正进行计算
-在用户查询的时候
-它是on demand的进行计算
-先做aggregate
-然后做join
-然后最后吐出给用户
-把这个结结果及返回给用户
-RisingWave
-是在后台已经build好了这样一个
-持续的data pipeline
-然后每当用户的change进来以后也是
-也就是每当
-用户进行了增删改查的操作以后
-这些操作都会以change log的形式
-留到下一个算子中
-然后同样这里的计算逻辑其实没有什么区别
-但是这里的算子是被持续进行的
-而当用户真正做select from
-STORES with basic这个materialized views的时候
-它可以在瞬间直接就返回出结果。
-然后以这样的设计就会带来一些结果，
-就比如说，在query latancy方面，你在一个数仓的数据库上进行的查询，通常往往是啊快的也可以到秒级以内。
-但是如果更复杂一些可能是在秒级
-甚至啊对于一些批处理的请求，可能是分钟级的。
-在streaming的base上
-因为这就是相当于在
-table上的一个带索引的一个查询
-所以它是很快的是在毫秒级
-嗯对freshness方面
-由于olap data DATABASE的限制
-通常不能做非常快的data injection
-通常我们的做法都是攒一个批
-比如说10分钟或者一小时，甚至一天的一个批
-然后把它一次性写进去，然后之后的查询
-就能体现出这个新的写入
-而Streaming database里面，我们的整个计算和存储
-都是为这样的持续写入而设计的
-所以它的变更可以认为是秒级的
-就任何的写入，在很短的时间内
-经过整个pipeline就能看到它体现出的这个结果的变化。
-另一个对比是跟常见的OLTP Database的对比，这里同时也包括了一些time service DATABASE的对比。
-OLTP DATABASE其实它和刚刚那张图上提到的一些相似之处就是它不会对最后的结果及做任何处理。它也是写入到table中
-这是一个最大的一个区别
-然后OLTP database也是为了这样的workload
-做了大量的刻画吧
+OLAP database的基本思想是adhoc的query，对于每一次的query，他并不会去关心这次query跟上一次的query有什么关联，他每一次都会重新用执行计划去做一次table scan，然后在内存中做计算，最后输出来。换句话说，即使每次的query可能就只有一点点差别，他也不会利用到这一点。而streaming database就是把它反转一下，变成一个增量的计算。
 
-可以认为就包括acid、 transaction
-这是一个
-可能业务上一定会需要的一个特性
-比如说强一致性
-比如说对于CRUD workload的性能上的侧重
-然后同时在很多的业务部署中
+我们可以看这张图，对于同样一条查询query，这个query其实就是之前create materialized views的那一页slide上所写的那个。对于一个普通的传统的数据库，毫无疑问，他做的事情是把用户的变更物化到表里。然后再真正进行计算，在用户查询的时候，它是on demand的进行计算。先做aggregate，再做join，最后吐出给用户，把这个结果集返回给用户。
 
-OLTP Database才是那个业务数据的sourth-of-truth，所谓sourth-of-truth就是当整个系统的数据有不一致的时候，你会以哪个为准。显然对于一个业务库来说，是以业务库为准。OLAP里面存的数据，如果你觉得有不一致，随时可以把它杀掉，然后重新从上游导下来。
-然后streaming database
-在这一点上有这些不一样吗
-首先我们不会支持完整的acid、transaction
-呃部分层面上比如说数据的原子性
-还有读取时候的snapshot isolation
-这些是可以保证的
-但是我们不会说支持像OLTP database那样啊
-非常完整的事务的特性
-允许你做begin commit这样的事情
-这些在嗯streaming database里面
-如果你去实现了是可以的
-但是他要付出很多性能上的代价，这是没有必要的
-因为绝大多数情况下，我们都是接受上游
-pipeline传过来的这样一个数据
-所以我们认为上游的source-of-truth
-已经把这些问题都解决了
-作为一个专注于数据分析的一这么一个DB
-我们只要做好分析这一件事情就好了
+RisingWave是在后台已经build好了这样一个持续的data pipeline，每当用户的change进来以后，即每次用户进行了增删改查的操作以后，这些操作都会以change log的形式流到下一个算子中。同样这里的计算逻辑其实没有什么区别，但是这里的算子是被持续进行的。而当用户真正做select from STORES with basic这个materialized views的时候，它可以直接瞬时返回出结果。
+
+然后以这样的设计就会带来一些结果，比如说在query latancy方面，在一个数仓的数据库上进行查询，往往最快的也要到秒级。如果是更复杂一些可能是在秒级，甚至是对于一些批处理的请求，可能是分钟级的。在streaming的database上，因为这就是相当于在table上的一个带索引的查询，所以它是很快的可以达到毫秒级。在freshness方面，由于OLAP DATABASE的限制，通常不能做非常快的data injection，我们常用的做法都是攒一个批，比如10分钟或者一小时，甚至一天的一个批。然后一次性写入，之后的查询就能体现出这个新的写入。
+而在Streaming database里面，整个计算和存储都是为这样的持续写入而设计的，所以它的变更可以认为是秒级的，就任何的写入，在很短的时间内经过整个pipeline就能看到它体现出的这个结果的变化。
+
+另一个对比是跟常见的OLTP Database的对比，这里同时也包括了一些time series Database的对比。OLTP Database其实和刚刚那张图上提到的一些相似之处是它不会对最后的结果及做任何处理。它也是写入到table中，这是最大的一个区别。然后OLTP database也是为了这样的workload，做了大量的刻画。可以认为就包括acid、 transaction，这是业务上一定会需要的一个特性。比如说强一致性，对于CRUD workload的性能上的侧重，然后同时在很多的业务的部署中，OLTP Database才是那个业务数据的sourth-of-truth，所谓sourth-of-truth就是当整个系统的数据有不一致的时候，你会以哪个为准。显然对于一个业务库来说，是以业务库为准。OLAP里面存的数据，如果你觉得有不一致，随时可以把它杀掉，然后重新从上游导下来。
+
+Streaming database在这一点上会有些不一样，首先我们不会支持完整的acid。transaction部分层面上比如说数据的原子性，还有读取时候的snapshot isolation这些是可以保证的。
+
+但是我们不会说支持像OLTP database那样非常完整的事务的特性，允许做begin commit这样的事情。这些在streaming database里面，可以实现，但是要付出很多性能上的代价，这是没有必要的。因为绝大多数情况下，我们都是接受上游pipeline传过来的数据，所以我们认为上游的source-of-truth已经把这些问题都解决了。作为一个专注于数据分析的DB，我们只要做好分析这一件事情就好了。
 
 
-之前的slides可以认为都是对于streaming DATABASE的一个概念上
-或者说使用的场景上的一个介绍
-然后接下来我会进入到internals的这部分，就是讲解一下它内部设计上的一些考量，尤其是跟现有的flink这些系统的一些不同。
-首先总体架构上来看
-这是一个非常离散，非常disaggregated的一个架构。
+之前的slide可以认为都是对于streaming database概念上和使用的场景上的介绍。接下来我会进入到internals的这部分，讲解它内部设计上的一些考量，尤其是跟现有的flink这些系统的一些不同。
 
-可以被SCALe的部分分为frontend跟compute
-那这个是很容易理解的
-compute显然是需要被scale的
-frontend其实是为了照顾并发请求
-因为我们也承诺对外提供Serving能力
+首先总体架构上来看，这是一个非常离散，非常disaggregated的一个架构。可以被scale的部分分为frontend跟compute，这个是很容易理解，compute显然是需要被scale。
+frontend其实是为了照顾并发请求，因为我们也承诺对外提供serving能力
 就是用户可以直接从这里select materialized views拿到结果
-所以呃如果这个请求的量上去
-他显然也是需要上下呃
-scale out的能力的
-呃除此以外
-还有一个connected NODE
-负责连接外部的这些系统
-呃对为什么不把connect直接设计在
-computer的内部
-其实对于像kafka这样的
-呃我们原生支持的数据源
-它就是在内部的
-但是对于少数的像JDBC这样的事情
-因为java有更好的生态系统
-所以我们是用一个单独的节点
-然后通过RPC的方式去做
-这样能保证对
-更多的系统有一些兼容性
-存储这方面
-它是完全构建在一个共享
-的object store上的，这点是不同于Flink。
-computer本身上面虽然有状态
-但是我们把它看作一个
-很轻的一个cache层
-就比如说当一个computer node它宕掉以后
-重启以后
-它并不需要说把整个状态都拉到本地
-再去启动
-而是它会认为我直接起起来就已经
-恢复完成了
-然后之后所有遇到的
-呃没有见过的数据
-都会以一个cache miss的方式
-去远端的object store上去拉取最新的数据
-当然因为这个cache的存在
-大多数正常情况下运行的
-streaming的计算
-是不需要打穿到远端的
-所以这也是保证了他在
-呃一个正常的streaming workload下的良好的一个性能
+所以如果这个请求的量上去，他显然是需要上scale out的能力。
+除此以外，还有一个connected node负责连接外部的这些系统。为什么不把connect直接设计在
+computer的内部呢？其实对于像kafka这样的我们原生支持的数据源它就是在内部的，
+但是对于少数的像JDBC这样的事情因为java有更好的生态系统，所以我们是用一个单独的节点通过RPC的方式去做。这样能保证对更多的系统的兼容性，存储方面它是完全构建在一个共享的object store上的，这点是不同于Flink。computer本身上面虽然有状态，但是我们把它看作一个很轻的cache层。比如说当一个computer node宕机重启以后，它并不需要说把整个状态都拉到本地再去启动。它会认为我直接起来就已经恢复完成了。之后所有遇到的没有见过的数据都会以一个cache miss的方式去远端的object store上拉取最新的数据。因为这个cache的存在，大多数正常情况下运行的streaming的计算是不需要打穿到远端的。这也是保证了他在一个正常的streaming workload下良好的性能。也是得益于object store这个存储计算分离的一个设计，我们得以把compacted节点单独放到一个集群或者一个服务上。我们知道Lsm tree是需要经常去做compaction的，否则的话它那个结构会越来越不适合读，读的时候需要做更多的merge才能保证性能，所以需要时不时的对它进行一个compaction/这里我们把compaction从cn的work node上分离出来，拿到其他的一个集群上去做，也保证了后台的compaction不会对computer node的前台流量做影响。同时把compact单独拿出来，是因为它是一个类似于best effort这样的任务，所以它能用一些廉价的资源节省成本。比如说我们可以用spot instance，甚至更轻量faas服务来进行compaction。当然现在云上的架构还是使用一些单独的node去做处理。
 
-也是得益于object store这个分离的存储
-计算分离的一个设计
-我们得以把Compacted节点单独放到一个集群或者说一个服务上
-我们知道Lsm tree它是需要经常去做Compaction的
-否则的话它那个结构会越来越不适合读
-就是你读的时候需要做更多的merge才能保证性能
-所以需要时不时的对它进行一个compaction
-这里我们把compaction从cn的work node上
-分离出来
-拿到一个其他的集群上做
+我们知道大多数数据库从SQL进来以后先进入frontend，然后再过compute，之后再是storage的处理。
 
-也保证了后台的compaction不会对
-computer node的前台的
-流量做影响
-那同时Compact单独拿出来
-因为它是一个
-类似于best effort的这么一个任务
-所以它也能节省一些计算的资源
-比如说我们可以用spot instance
-甚至更轻量的faas服务
-来进行这个conpaction
-当然现在呃
-云上的架构还是使用一些单独的node去做处理的
-OK
-嗯内部的流程上首先SQL进来以后
-我们知道大多数数据库
-SQL进来以后先进frontend
+我也按这个流程大概讲一下RisingWave内部的流程。
+首先RisingWave它自称是一个Database，所以它也不像一些开源框架那样具有编程的API。
+我们这里唯一接受的用户的输入的定义流计算任务的方式就是通过SQL来定义。
+SQL进来以后会经过frontend的优化器做优化，结合meta node上的metadata产生一个streaming的task。当然如果用户输入的是一个纯粹的select query，它其实会产生一个batch的查询或者是adhoc的查询，但我今天不会去过多的涉及这一部分。
+对于一个streaming的一个query来说，它就会变成分布式的执行计划，然后丢到后端的分布式的runtime上执行。
+上图可以清晰的看到，SQL query经过SQL parser变成一个AST。然后经过planner，在这里其实是一个logical planner，变成一个直接对应于当前SQL的logical plan tree。之后经过后面的optimizer
+会将它转为一个物理上更优的optimized plan。
+这里面就包括比如为join的算子去选择应该用哪一个物理算子去执行，决定应该用哪种方式做分布式；比如对于aggregation他是否要做two phase的优化等等。这些事情都是在optimizer这一步完成。optimizer之后会在schedule之前会做一个fragmentation，把整个plan变成分布式的，将这里的一个逻辑node转变成一个物理的node，然后再送给scheduler，分发到各个节点上。
 
-然后frontend再过compute
-然后之后再是storage的处理
+在computer方面，整个计算引擎首先是在async rust的基础上构建的。如我们所知rust是一个很新的语言，我们对他的评价通常是说他对线程安全以及内存安全方面做了一些限制所以使他更加的安全。除此以外，rust还有一个很出彩的部分就是他有一个语言内置的async，或者称为协程的支持。
+不同于像golang这样的runtime的语言，rust自己可以把它的函数编译成一个协程，然后用一些第三方库提供的library去调度。所以如果rust里面跑了大量的这样的协程，它的效率是很高的。
+而我们知道streaming其实就是一个IO非常密集的操作，比如每来一个event，它会流经整个数据流
+然后在这整个流经的过程中都会有大量的如RPC这样的操作，包括从输入到输出这些阶段等等。
+所以Async Ryst的这个特性就让我们能以几乎零成本的就能很快的获得IO密集场景下的性能的优势
+然后计算本身是一个MPP的图，无须多言operator是最基本的计算单位。
+因为我们只接受SQL输入，所以我们可以整个系统中只需要预留一些SQL中用到的operator即可。
+同样这些operator也可以针对SQL的这种场景做大量的优化特化。比如这里的hash join使用的就是hash table作为它的内部cache的存储结构，之所以说它是cache，是因为in memory的数据结构它可能不持有所有的全量的数据。
+全量的数据总是存在field object store上，也就是S3上。每个actor的内部会把多个算子组合在一起，尤其是可以pipeline的算子，这也是现在的框架上在storage上经常见到的一些优化。
 
-我们也是按这个流程大概讲一下
-嗯首先前呃首先risingwave是一个
-它称作自己是一个DATABASE
-所以它也不像一些开源框架那样具有编程的API
-我们这里唯一接受的用户的输入的定义流计算任务的方式
-就是通过SQL来定义
-SQL进来以后
-会经过frontend的优化器做一个优化
-会结合meta node上的metadata
-然后产生一个streaming的task
-当然如果用户输入的是一个纯粹的select query
-它其实会产生一个batch的查询
-或者是adhoc的查询但我们今天不会
-去过多的设计这一部分
-对于一个streaming的一个query来说
-它就会变成分布式的执行计划
-然后丢到后端的分布式的runtime上执行
-对这张图可能看起来更清晰一点
-SQL query经过SQL parser变成一个AST
-然后经过planner
-这里其实是一个logical planner
-它会变成一个
-直接对应于当前SQL的一个logical plan tree
+如果熟悉flink的话那一定听过Chandy-Lamport algorithm的checkpoint的算法，它是一个在一个分布式系统上获得全局一致的snapshot的算法。Flink将它用于做checkpoint。同样我们也是，但是这里checkpoint的频率会高很多，默认是1秒一次。为什么这样设计呢？是因为这个checkpoint同时也被用来做所有的读请求。
 
-然后经过后面的optimizer
-会把它变成一个物理上更优的呃
-optimized plan
-这里面就包括说
-比如说为join这样的算子去选择应该用
-哪一个物理算子去执行
-比如说决定他应该
-用哪种方式做分布式
-比如说aggregation他是否要做
-two phase的优化等等
-这些事情都是在optimizer这一步完成的
-呃optimizer之后会在schedule之前会做一个fragmentation
-就是把整个plan变成分布式的
-把它一个这里的一个逻辑node
-变成这里的一个物理的node
-然后再送给scheduler了
-把它分发到各个节点上
-嗯computer方面
-整个计算引擎首先是在async rust的基础上构建的
-就是我们知道rust是一个很新的语言
-然后我们对他的评价通常都有说
-他对线程安全以及内存安全方面做了一些限制所以使他更加的安全
-对除此以外
-其实rust还有一个很出彩的部分是
-他有一个语言内置的async的
-或者说协程的支持
-就是不同于所有的这些像golang这样的runtime的语言
-rust自己可以把它的函数编译成一个协程
-然后用一些第三方库提供的library去调度
-所以如果rust里面跑了大量的这样的协程
-它的效率是很高的
-而我们知道streaming其实就是一个IO非常密集的操作
-比如说每来一个event，它会流经整个数据流
-然后这个整个流经的过程中都会有大量的
-像RPC啊这样的操作
-包括从输入到输出等等
-所以ASync RUST的这个特性就让我们能啊
-几乎零成本的就能很快的获得这样一个
-IO密集场景下的性能的优势
-然后计算本身是一个MPP的一个图
-就不用多说
-嗯operator是最基本的计算单位
-因为我们只接受SQL输入
-所以我们可以整个系统中只需要预留一些
-SQL中用到的operator就可以了
-同样这些operator也可以针对SQL的这种场景做大量的优化特化
-比如说这里的hash join 
-这里hash join使用的就是hash table
-作为它的内部cache的存储结构
-之所以说是它cache，是因为in memory的这个数据结构
-它可能不持有所有的全量的数据
-全量的数据总是存在field object store上的也就是S3上的
-每一个actor的内部它会把多个算子fuzz在一起
-尤其是可以pipeline的这些算子
-对这也都是现在的框架上
-呃经常见到的一些优化
+这里提到的存储，它不仅负责internal state checkpoint的存储，同时也负责table materialized views这些数据的存储。它们在存储里面是没有被区分对待的，无论是格式还是时间戳、隔离性方面的处理都是一致的。
+然后data还是被hash partition了，这是因为上面的actor在进行计算的时候，会有多个actor的存在，而每个actor本身是单线程的，需要负责数据的一个分片，所以hash partition存在客观需要。
 
-storage上
-如果熟悉Flink的话那一定听过这个Chandy-Lamport algorithm的checkpoint的算法
-就是它是一个在一个分布式系统上获得全局一致的
-snapshot的这样一个算法
-然后flink可将它用于做checkpoint
-我们也是同样这里也是同样
-但是这里checkpoint的频率会高很多
-默认的是1秒一次
-为什么这样设计呢
-因为这个checkpoint同时也被用来做所有的读请求
-这里提到存储
-它不仅负责internal state的存储
-internal state checkppoint的存储
-它同时也负责table materialized views这些数据的存储
-他们在存储里面是没有被区分对待的
-就是无论是格式还是时间戳、隔离性这方面的处理都是一样的啊
-然后data还是被hash partition了
-这是因为上面的数据
-呃上面的actor在进行计算的时候
-因为会有多个actor的存在
-而每个actor本身是单线层的
-需要负责数据的一个分片
-所以hash partition还是客观需要的
-然后这个算法我就不展开介绍了
-相信大家对Flink的了解
-应该足以瞬间理解这个图上的意思
+这个算法我就不展开介绍，相信大家对Flink的了解，应该足以瞬间理解图上的意思。
 
-然后存储本身的设计
-是一个从零开始设计的一个LsM tree结构的
-可以认为整个S3上的这些SST
-它组成的是同一颗LsM tree
-然后在这个tree里面
-它的数据内部是有partition的
-但对于存储本身来说
-它是不感知这件事情的
-对啊
-另一个点就是serverless compaction
-目前的做法是在
-cn以外起一个compact的pool
-但是好在这个pool
-可以被多个tenant所共享
-然后这里的方式就类似于
-每一个啊reserve instance
-他当他发现自己的
-这个compacting的任务对列中有
-新的compact任务的时候
-他会向compact的这个pool去
-请求一个资源
-就是你能否能帮我把这个任务给调度掉
-然后每一个
-reserve instance有自己的这样一个compact的任务对列
-而Compact pool负责处理所有这些
-Multi tenant的reserve instance的
-共享的这个这个compact的请求
+对于存储本身的设计，是一个从零开始设计的一个LSM tree结构的，可以认为整个S3上的SST组成的是同一颗LSM tree。在这个tree里面，它的数据内部是存在partition的，但对于存储本身来说，它是不感知这件事情的。
 
-着重说一下data consistency我们做了哪些
-工作吧
-这也是我们自称为一个streaming DATABASE
-和其他的streaming的框架
-可能是一个显著的一个不同
-对这里我把它分为了四点
-一个是snapshot read
-这就是刚刚说到的
-当你在同一个时间戳
-或者说同一个事务中
-去读取materialized views以及table的时候
-它是总是能保证这个数据的
-完全的一致性的
-就是他们的结果
-是可以相互对应的去验证的
-Atomic write这一点是我们在写入的方面做的一个特别处理
-它的场景是什么呢
-比如说你直接对接了一个上游的postgres数据库
-然后在postgres中，业务上可能运行了一些
-事务用transaction联系起来的啊
-多个的写入
-然后这一点我们是能够保证在
-RisingWave这一端重放WAL的时候
-也保证同样的事务性能
-所以你查询的时候不会查到半个事务的结果啊
+另一个点就是serverless compaction，目前的做法是在cn节点以外起一个compact的pool。好在这个pool可以被多个tenant所共享。这里的方式就类似于每个reserve instance。当他发现自己的compaction的任务对列中有新的compact任务的时候，他会向compact的pool去请求一个资源
+就是你能否能帮我把这个任务给调度掉。然后每一个reserve instance有自己的这样一个compact的任务对列，而Compact pool负责处理所有这些Multi tenant的reserve instance的共享的compact的请求。
+
+着重说一下data consistency做了哪些工作吧，这也是我们自称为一个streaming DATABASE和其他的streaming的框架一个显著的不同。
+这里我把它分为了四点：
+一个是snapshot read，这就是刚刚说到的，当你在同一个时间戳或者说同一个事务中去读取materialized views以及table的时候，它是总是能保证这个数据的完全一致性的。就是他们的结果是可以相互对应的去验证的。
+Atomic write这一点是我们在写入的方面做的一个特别处理。它的场景是什么呢？比如说你直接对接了上游的postgres数据库。然后在postgres中，业务上可能运行了一些事务用transaction联系起来多个的写入。
+然后这一点我们是能够保证在RisingWave这一端重放WAL的时候，也保证同样的事务性能。所以你查询的时候不会查到半个事务的结果。
 那可能会造成一些困扰对吧
 可能会有两个表之间数据不一致的情况。
-backfill这一点是
-嗯可以说认为是这里独有的一个概念
-或者说在
-flink里面如果你把这件事情拿出来说
-那它会有一个名词叫backfill
-但是在我们这里
-在创建materialized views 的时候
-其实很自然的事情就是
-为了保证materialized view
-和基表的数据一致
-它必须要对基表已有的数据进行一个
-重跑这个重跑的过程我们称为backfill
-然后它也一样是一个分布式的
-也可以恢复的一个过程
-最后就是checkpoint，我们复用了chandy-lamport 算法
-做global的consistent的checkpoint
-然后这个算法本身也保证了
-像streaming经常被提到的exactly-once、
-at least once delivery这些特性
-OK然后从
-呃尤其是从用户或者说使用者的角度看
-呃有这些fetures是值得highlight一下的
-首先是存储和计算的分离
-这也是一个
-呃很多新的系统的一个设计趋势
-它能带来更低的存储成本
-同时也让恢复的过程更快
-我知道很多系统都可以把它的状态从
-比如说从HDFS上迁移到
-现在流行的s3这样的云原生存储上
-但是从架构上说
-它并不能改变很多事情
-而RisingWave最后它有一个很大的特性是
-所有的computer note上的那些actor、那些算子
-它的内存状态
-并不会被认为是
-一个真正的truth
-所以
-在恢复的时候它是可以不恢复的
-然后以
-cache miss的形式去不断的填充到里面
-所以真正的恢复本身是非常快的
-然后你会看到streaming跑起来以后
-它会触发一些建立不断的cache miss
-然后逐渐的那个开启的填充量的上来
-然后跑的速度也就越来越快
-对嗯
-SQL support的这一点在之前着重提到过
-因为我们是有做了一套完整的像数据库一样的
-SQL optimize的流程
-所以他对SQL的支持是非常好的
-然后这也给你从Flink SQL
-还有其他用SQL定义的job迁移过来
-都可以说是非常轻松的一件事情。
+backfill这一点可以说是这里独有的一个概念，或者说在flink里面如果你把这件事情拿出来说，那它会有一个名词叫backfill。但是在我们这里，在创建materialized views 的时候，其实很自然的事情就是为了保证materialized view和基表的数据一致。它必须要对基表已有的数据进行一个重跑，这个重跑的过程我们称为backfill。
+然后同样它是分布式的，也有可以恢复的一个过程。
+最后就是checkpoint，我们复用了chandy-lamport 算法做global的consistent的checkpoint。这个算法本身也保证了像streaming经常被提到的exactly-once、at least once delivery这些特性。
 
-Multi join这里也是着重highlight一下
-由于我们对于checkpoint还有存储的这个设计
-它对于重的state
-其实
-对于这个产品来说没有太多的区别
-无论是重的还是轻的state
-它用的这个方式都可以让它在data storage上很轻松的存下所有的状态
+尤其是从用户或者使用者的角度来看，这些fetures是值得highlight一下的。
+首先是存储和计算的分离，这也是多新的系统的一个设计趋势。
+它能带来更低的存储成本，同时也让恢复的过程更快。我知道很多系统都可以把它的状态
+比如说从HDFS上迁移到现在流行的s3这样的云原生存储上。但是从架构上说，它并不能改变很多事情。
+而RisingWave最后它有一个很大的特性是所有的computer node上的那些actor、那些算子的内存状态并不会被认为是一个真正的truth。所以在恢复的时候它是可以不恢复的，是以cache miss的形式去不断的填充到里面，所以真正的恢复本身是非常快的。会看到streaming跑起来以后它会触发一些建立不断的cache miss，然后逐渐的开启的填充量的上来，跑的速度也就越来越快。
 
-然后你不用担心说本地的状态太大
-因为他们都是以cache形式存在的
-同时还做了一些像join ordering这样的优化
-join ordering啊
-我们这里的重点除了
-保证他不会出现一些啊
-我们知道数据库上做
-就要join reordering的时候
-要保证的几个特性
-一个是希望每一个join运算量都比较小
-第二个是绝对不会有像非等值条件这样的情况发生
-除此以外
-我们还会保证他的
-join的层数尽可能低
-这也是因为streaming会更看重latency所以join的层数如果越多
-其实你的数据到从进来到出来
-他经历的那个pipeline的阶段也是更多的
-那如果让他们尽可能并行起来
-其实也能让latency更低
-最后就是强的一致性
-强一致性这一点上有一个很好的特性是你在创建一个新的streaming job的时候
-能很容易地reasoning它的crackness
-就非常简单的
-你只要把对应的那个select语句跑一遍
-然后看一下结果是否是自己想要的
-然后把这条语句
-copy出来在前面加上Creator materialized view as
-然后这么一个实名叫就定义完成了
-然后它的结果
-也是和你之前测试的时候是一模一样
-的这个过程是非常的轻松的
-OK
-performance这一块
-我其实希望快速的跳过，这是和Flink 1.16的一个对比
-也是前几天我们在社区群里面
-放出来的一个
-性能测试的报告
-对嗯我更想表达的是
-对于大多数的nexmark query
-我们是能
-能够达到一个还不错
-甚至略微超过的一个结果的
-对于少数的状态非常重的query
-是能够达到10倍
-甚至更大的一个提升的
-这里是一个更详细的表对
-如果有兴趣可以加到我们的社区群里面
-会有链接指向这个测试报告对
+SQL support的这一点在之前着重提到过，因为我们是做了一套完整的像数据库一样的SQL optimize的流程，所以他对SQL的支持是非常好的。这也给你从Flink SQL以及其他用SQL定义的job迁移过来都可以说是非常轻松的一件事情。
 
-最后的时间
-分享一下一些典型的use cases
-这是一个非常general的一个描述
-几个常见的case比如说realtime的分析
-realtime分析这个言下之意
-是你可以进行一些比较复杂的join
-还有aggregation这样的查询
-然后把它展示在一个实时的数据报表上
-对这也是得利于RisingWave对sql features 的一个比较好的支持
-第二个是关于监控和报警啊
-这点其实
-主要我我觉得不用解释太多
-对它的使用case一般是从一个MQ进来
-它代表了一系列的event
-然后输出一个输出到另一个MQ
-它代表了一个报警的发生
-在我们这里体现的就是一个Kafka的source和一个Kafka的sink啊
-然后risingwave本身的设计能让他达到
-一个秒级的latency
-这个呃
-可能相比于一些像storm这样的系统
-并不是那么的快
-但是对于大多数场景也是足够用了
-然后在这个过程中
-如果你有更复杂的规则
-你也可以通过引入UDF的方式
-来丰富它的
-这个类似于报警规则的设置
-然后最后一个是ETL
-ETL主要是受益于risingwave对Multiple join的
-一个良好的支持
-这也是我们在看到很多use cases之后
-才把这才才发现了这样一个场景下
-我们是有优势的
-对在进行完join之后
-你可以选择把它发送到下游的数仓
-或者说数据湖之类的组件进行更复杂的分析
-risingwave在期间只起到一个pipeline的作用
+Multi join这里也着重highlight一下，由于我们对于checkpoint还有存储的设计对于这个产品来说没有太多的区别。无论是重的state还是轻的state，它用的方式都可以让它在data storage上很轻松的存下所有的状态。你不用担心说本地的状态太大，因为他们都是以cache形式存在的，同时还做了一些如join ordering的优化。
+
+对于join ordering，我们的重点除了保证他不会出现我们知道数据库上做就要join reordering的时候，还要保证的几个特性。一个是希望每一个join运算量都比较小，第二个是绝对不会有像非等值条件这样的情况发生。除此以外，我们还会保证join的层数尽可能低，这也是因为streaming会更看重latency。因为join的层数如果越多，你的数据到从进来到出来经历的pipeline的阶段也是更多。如果让他们尽可能并行起来，其实也能让latency更低。
+
+最后就是强的一致性，强一致性这一点上有一个很好的特性是在创建一个新的streaming job的时候
+能很容易地reasoning它的crackness。非常简单的只要把对应的select语句跑一遍，然后看一下结果是否是自己想要的，把这条语句copy出来在前面加上create materialized view as。然后这么一个streaming join就定义完成了。它的结果也是和你之前测试的时候是一模一样的，整个过程是非常的轻松。
+
+performance这一块，我其实希望快速的跳过，这是和flink 1.16的一个对比，也是前几天我们在社区群里面放出来的一个性能测试的报告。我更想表达的是对于大多数的nexmark query，我们是能够达到一个还不错甚至略微超过的结果。对于少数状态非常重的query，是能够达到10倍甚至更大的提升。这里是一个更详细的表对，如果有兴趣可以加到我们的社区群里面，会有链接指向这个测试报告。
+
+最后的时间分享一些典型的use cases。
+
+这是一个非常general的描述，几个常见的case比如说realtime的分析，这个言下之意是你可以进行一些比较复杂的join、aggregation这样的查询，把它展示在一个实时的数据报表上。这也是得利于RisingWave对sql features 的一个比较好的支持。
+
+第二个是关于监控和报警，这点不用解释太多。它的使用case一般是从一个MQ进来，它代表了一系列的event，输出一个输出到另一个MQ，它代表了一个报警的发生。在我们这里体现的就是一个Kafka的source和一个Kafka的sink。RisingWave本身的设计能让他达到秒级的latency这可能相比于一些像storm这样的系统并不是那么的快，但是对于大多数场景也是足够用了。在这个过程中如果你有更复杂的规则，你也可以通过引入UDF的方式来丰富它的报警规则的设置。
+
+最后一个是ETL，主要是受益于RisingWave对Multiple join的良好的支持，这也是我们在看到很多use cases之后，才发现在这样的场景下，我们是有优势的。在进行完join之后，你可以选择把它发送到下游的数仓，或者说数据湖之类的组件进行更复杂的分析，RisingWave在其间只起到一个pipeline的作用。
 
 
 
-呃下面是两个稍微具体一些的case
+下面是两个具体的case，
 
-这是一个仓储物流管理的一个
-用户的架构升级的一个case
-它原本的这样一个架构是比较经典的离线加在线的
-两套数据流，首先上流的消息进来以后
-通过kafka放到这个columnar db里面
-同时通过Flink作为一些join
-来把它实现打宽的这么一个需求
-然后放到另一个更快速的
-这个columnar DB里面
-然后在线业务就可以通过这样一个DB
-呃可能就是clickhouse这样的
-数据库去迅速的获得结果
-能达到一个秒级的延迟
-但是这期间的代价其实很大的
-因为首先这个flink做join它很重
-然后这个columnar DB本身
-它执行了大量的重复的query
-其实是没有必要的
-改造以后的架构类似于这个样子
-这里原来在Flink跟一个列式数据库所负责的部分
-直接由一个risingwave所代替了
+这是一个仓储物流管理的用户的架构升级的case，它原本的架构是比较经典的离线加在线的两套数据流。首先上流的消息进来以后，通过kafka放到columnar db里面。同时通过flink作为一些join
+来把它实现打宽的这么一个需求。最后放到另一个更快速的columnar DB里面，在线业务就可以通过这个DB（比如clickhouse）去迅速的获得结果，能达到一个秒级的延迟。但是这期间的代价其实很大的，因为首先这个flink做join它很重，然后columnar DB本身它执行了大量的重复的query，其实也是没有必要的。
 
-另一个case是一个嗯
-web3的一个
-监控报警的一个实际的应用
-对
-它的上游
-其实是业务方自己通过一些方式从链上抓取的
-一些交易的信息
-就各种链上的交易的信息
-汇总在一些库里面
-然后发送到
-呃好像是kinesis还是某一个 MQ中
-然后risingwave在后面直接接到
-这个消息堆类里面
-然后再关注
-里面通过SQL定义了很多规则
-这些规则会在一定情况下被触发
-然后发送出一个报警的一行
-然后这一行会被导入到下游的
-啊kafka instance中
-然后被作为一个alerting的信息发送到各种短信啊
-像telegram bot，甚至邮箱啊等等各种途径上
-嗯然后
-这里面因为规则的这个东西可能会
-比sql的表达能力更加复杂
-所以也是引入了
-UDF Server作为一个更复杂的执行方式
-UDF Server其实它是几乎允许你做任何事情
-他不是说一段简单的无状态的代码
-而是说我们允许你定义一个
-只要你实现了我们提供的SDK中的
-输入的接口
-然后每当RisingWave接收到一个新的疑问呢
-就会发一个RPC给UDF Server
-然后这上面你可以进行任何的处理
-然后UDF可以用Python跟java去定义
-OK这是一些users的图
-以后以上就是全部内容了
+改造以后的架构类似于这样，这里原来在Flink跟一个列式数据库所负责的部分，直接由一个RisingWave所代替了。
 
+另一个case是一个web3的监控报警的实际的应用。
+
+它的上游其实是业务方自己通过一些方式从链上抓取的一些交易信息，各种链上的交易的信息
+汇总在一些库里面。发送到kinesis中，然后RisingWave在后面直接接到这个消息堆类里面
+然后再灌入，里面通过SQL定义了很多规则，这些规则会在一定情况下被触发，发送出一个报警的一行。这一行会被导入到下游的kafka instance中，作为一个alerting的信息发送到各种通讯渠道，像telegram bot，甚至邮箱啊等等各种途径上。
+
+因为这里面的规则可能会比sql的表达能力更加复杂，所以也是引入了UDF Server作为一个更复杂的执行方式。UDF Server其实是允许你几乎做任何事情，他不是说一段简单的无状态的代码，而是说我们允许你定义一个只要你实现了我们提供的SDK中的输入的接口。
+
+然后每当RisingWave接收到一个新的event，就会发一个RPC给UDF Server。在这上面你可以进行任何的处理，UDF可以用python跟java去定义。
 
 
 Q & A
