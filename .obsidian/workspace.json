@@ -1,0 +1,222 @@
+{
+  "main": {
+    "id": "2d79703a0bae9862",
+    "type": "split",
+    "children": [
+      {
+        "id": "cb6b3c1a2af4aabe",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e502c519c831fb2d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "LLM推理框架的设计与实现.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "dd1873c31a30b437",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.4.16"
+              }
+            }
+          },
+          {
+            "id": "6c81462a70bf0296",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.5.3"
+              }
+            }
+          },
+          {
+            "id": "5970156a7a0aaa7b",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.5.8"
+              }
+            }
+          }
+        ],
+        "currentTab": 3
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b17429a9df03229a",
+    "type": "split",
+    "children": [
+      {
+        "id": "04103148d2725df3",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "92ed6ef5fc995725",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "2d51d30fe5475495",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "60728aed6a853fc2",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          },
+          {
+            "id": "e7d4b6450fe8832b",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 209.5
+  },
+  "right": {
+    "id": "6e021b8883b100f0",
+    "type": "split",
+    "children": [
+      {
+        "id": "555942fed386f246",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1c75a8b2337884b7",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "LLM推理框架的设计与实现.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "143b8121925374c1",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "LLM推理框架的设计与实现.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "5b5c4ed5be907233",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "02c2d99201e93239",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "LLM推理框架的设计与实现.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "5970156a7a0aaa7b",
+  "lastOpenFiles": [
+    "LLM推理框架的设计与实现.md",
+    "images/llm-inference/9.png",
+    "images/llm-inference/8.png",
+    "images/llm-inference/7.png",
+    "images/llm-inference/6.png",
+    "images/llm-inference/5.png",
+    "images/llm-inference/4.png",
+    "images/llm-inference/3.png",
+    "images/llm-inference/24.png",
+    "images/llm-inference/23.png",
+    "images/llm-inference/22.png",
+    "images/llm-inference",
+    "images/高性能 LLM 推理框架的设计与实现",
+    "MatrixOne_HTAP.md",
+    "risingwave.md",
+    "images/risingwave/RisingWave 云原生流数据库技术内幕.zip",
+    "images/risingwave",
+    "images/tmp10/RisingWave 云原生流数据库技术内幕.zip",
+    "images/tmp10",
+    "MatrixOne_OLAP.md",
+    "matrixone.docx",
+    "output.docx",
+    "MatrixOne_OLAP.html",
+    "LAS_lakehouse_in_ByteDance.md",
+    "images/matrixone",
+    "MatrixOne_olap.md",
+    "数据湖统一元数据和存储管理.md",
+    "aliyun_metastore.md",
+    "lakesoul.md",
+    "iceberg_in_xiaomi.md",
+    "datalake_jinshancloud.md"
+  ]
+}
